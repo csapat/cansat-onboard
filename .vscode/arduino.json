@@ -2,7 +2,7 @@
     "programmer": "AVRISP mkII",
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega328old",
-    "port": "COM10",
+    "port": "COM3",
     "sketch": "cansat-onboard.ino",
     "output": "../output"
 }
