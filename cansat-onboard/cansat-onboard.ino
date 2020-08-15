@@ -179,7 +179,7 @@ void loop(){
 	*/
 	//Serial.print("  ");
 	
-	unsigned long millisNow = millis();
+	
 	//Serial.println(float(float(1000)/float(millisNow-millisAtStart)), 4);
 
 	if (millisNow-millisLastRadioBroadcast>500){

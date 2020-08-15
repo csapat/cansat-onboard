@@ -1,0 +1,144 @@
+#include <Wire.h>
+#include <SPI.h>
+#include <NeoSWSerial.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+#include <TinyGPS.h>
+#include <MPU9250.h>
+//#include <LoRa.h>
+
+// PINs
+#define PIN_GPS_RX 4
+#define PIN_GPS_TX 3
+
+
+TinyGPS gps;
+NeoSWSerial gpsSerial(PIN_GPS_RX, PIN_GPS_TX);
+
+float lat, lon, alt = 0.0, course = 0.0;
+unsigned long age;
+
+#define BME_SCK 13
+#define BME_MISO 12
+#define BME_MOSI 11
+#define BME_CS 10
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+Adafruit_BME280 bme; // I2C
+
+MPU9250 mpu = MPU9250();
+float mpu_temperature = 0;
+
+unsigned long millisLastRadioBroadcast = 0;
+
+void setupMpuRanges(){
+	mpu.set_accel_range(RANGE_4G);
+	mpu.set_gyro_range(RANGE_GYRO_250);
+	mpu.set_mag_scale(SCALE_14_BITS);
+	mpu.set_mag_speed(MAG_8_Hz);
+}
+
+void readMpuAccel(){
+	// Accel
+	
+	//mpu.get_accel();
+	mpu.get_accel_g();
+	// values: mpu.x mpu.y mpu.z
+	// in G: mpu.x_g mpu.y_g mpu.z_g
+}
+
+void readMpuGyro(){
+	//mpu.get_gyro();
+	mpu.get_gyro_d();
+	// values: mpu.gx mpu.gy mpu.gz
+	// in deg/s: mpu.gx_d mpu.gy_d mpu.gz_d
+}
+
+void readMpuMagneto(){
+	// Magnetometer
+	//mpu.get_mag();
+	mpu.get_mag_t();
+	// values: mpu.mx mpu.my mpu.mz
+	// in uT: mpu.mx_t mpu.my_t mpu.mz_t
+}
+
+void readMpuTemperature(){
+	mpu_temperature = (((float) mpu.get_temp()) / 333.87 + 21.0);
+}
+
+void setup() {
+	Serial.begin(9600);
+	gpsSerial.begin(9600);
+
+	setupMpuRanges();
+	uint8_t temp = mpu.begin();
+	readMpuMagneto();
+
+	bool bmeStatus = bme.begin();  
+	if (!bmeStatus) {
+		Serial.println("Could not find a valid BME280 sensor, check wiring!");
+	}
+}
+
+void readGps(){
+	int availableSerialChars = gpsSerial.available();
+	if (availableSerialChars) {
+		for (int i=0; i < availableSerialChars; i++){
+			char c = gpsSerial.read();
+			//Serial.write(c);
+			if (gps.encode(c)){
+				gps.f_get_position(&lat, &lon, &age);
+				alt = gps.f_altitude();
+				course = gps.course();
+			}
+		}
+	}
+}
+
+void loop() {
+	// put your main code here, to run repeatedly:
+	//readGps();
+	/*
+	Serial.print("Reading GPS   ");
+	Serial.print(lat, 10);
+	Serial.print(" ");
+	Serial.print(lon, 10);
+	Serial.println(" ");
+	
+	Serial.print("Temperature = ");
+	Serial.print(bme.readTemperature());
+	Serial.println(" *C");
+
+	Serial.print("Pressure = ");
+	Serial.print(bme.readPressure() / 100.0F);
+	Serial.println(" hPa");
+
+	Serial.print("Approx. Altitude = ");
+	Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+	Serial.println(" m");
+
+	Serial.print("Humidity = ");
+	Serial.print(bme.readHumidity());
+	Serial.println(" %");
+
+	Serial.println();
+	*/
+	//readMpuAccel();
+	//readMpuGyro();
+	//readMpuMagneto();
+	Serial.print(mpu_temperature);
+	Serial.print(" ");
+	Serial.print(mpu.x_g, 5);
+	Serial.print(" ");
+	Serial.print(mpu.y_g, 5);
+	Serial.print(" ");
+	Serial.print(mpu.z_g, 5);
+	Serial.print(" ");
+	Serial.print(mpu.mx_t, 5);
+	Serial.print(" ");
+	Serial.print(mpu.my_t, 5);
+	Serial.print(" ");
+	Serial.print(mpu.mz_t, 5);
+	Serial.println(" ");
+}

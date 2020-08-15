@@ -1,0 +1,7 @@
+{
+    "programmer": "Arduino as ISP",
+    "board": "arduino:avr:nano",
+    "configuration": "cpu=atmega328old",
+    "port": "COM7",
+    "sketch": "cansat_proba.ino"
+}
